@@ -115,6 +115,7 @@ python run_server.py
 Docker run command
 
 Mount your secrets.py file in docker volume.
+
 Mount /etc/localtime (required to get sunrise/sunset times working).
 
 ```
