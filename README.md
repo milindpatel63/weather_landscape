@@ -110,7 +110,25 @@ python run_test.py
 python run_server.py
 ```
 
+#### Docker
 
+Docker run command
+
+Mount your secrets.py file in docker volume.
+Mount /etc/localtime (required to get sunrise/sunset times working).
+
+```
+docker run -d \
+  --name weather_landscape \
+  -p 3355:3355 \
+  --restart unless-stopped \
+  -v /Docker/weather_landscape/secrets.py:/app/secrets.py \
+  -v /Docker/weather_landscape/tmp:/app/tmp \
+  -v /etc/localtime:/etc/localtime:ro \
+  milindpatel63/weather_landscape:latest
+```
+
+Or use docker-compose.yml.example
 
 
 ## Hardware

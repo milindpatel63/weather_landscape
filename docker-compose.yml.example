@@ -1,0 +1,12 @@
+version: "3.3"
+services:
+  weather_landscape:
+    image: milindpatel63/weather_landscape:latest
+    container_name: weather_landscape
+    ports:
+      - 3355:3355
+    restart: unless-stopped
+    volumes:
+      - /Docker/weather_landscape/secrets.py:/app/secrets.py #required
+      - /Docker/weather_landscape/tmp:/app/tmp #optional
+      - /etc/localtime:/etc/localtime:ro #required or else sunrise/sunset wont work
