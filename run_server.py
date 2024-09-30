@@ -76,8 +76,8 @@ class WeatherLandscapeServer(BaseHTTPRequestHandler):
         img = WEATHER.MakeImage() 
         img.save(user_file_name) 
         
-        #img = img.rotate(-90, expand=True)   
-        #img = img.transpose(Image.FLIP_TOP_BOTTOM)  
+        img = img.rotate(-90, expand=True)   
+        img = img.transpose(Image.FLIP_TOP_BOTTOM)  
         
         img.save(eink_file_name) 
         
