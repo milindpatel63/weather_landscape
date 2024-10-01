@@ -13,5 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Expose the port the app runs on
 EXPOSE 3355
 
+# Add a health check to ensure the application is running properly
+HEALTHCHECK --interval=300s --timeout=30s --start-period=60s --retries=3 \
+    CMD curl --fail http://localhost:3355/ || exit 1
+
 # Run the server
 CMD ["python", "run_server.py"]
