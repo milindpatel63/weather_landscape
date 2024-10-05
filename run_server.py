@@ -55,7 +55,7 @@ class WeatherLandscapeServer(BaseHTTPRequestHandler):
                databytes = f.read()               
                f.close()
                self.send_response(200)
-               s.send_header("Content-type", "image/bmp")
+               self.send_header("Content-type", "image/bmp")
             except:
                file_to_open = "File not found"
                self.send_response(404)
