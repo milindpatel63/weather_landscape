@@ -13,7 +13,7 @@ import socket
 from weather_landscape import WeatherLandscape
 
 
-SERV_IPADDR = "0.0.0.0"
+SERV_IPADDR = "127.0.0.1"
 SERV_PORT = 3355
 
 EINKFILENAME = "test.bmp"
