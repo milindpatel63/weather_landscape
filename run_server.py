@@ -91,7 +91,6 @@ class WeatherLandscapeServer(BaseHTTPRequestHandler):
     def IndexHtml(self):
     
         body = '<h1>Weather as Landscape</h1>'
-        body+='<p>Place: '+("%.4f" % secrets.OWM_LAT) +' , '+("%.4f" % secrets.OWM_LON)+'</p>'
         body+='<p><img src="'+USERFILENAME+'" alt="Weather" "></p>'
         body+='<p>ESP32 URL: <span id="eink"></span></p>'
         body+='<script> document.getElementById("eink").innerHTML = window.location+"'+EINKFILENAME+'" ;</script>'
