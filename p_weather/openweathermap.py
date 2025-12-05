@@ -5,6 +5,8 @@ import datetime
 from urllib.request import urlopen
 
 
+from p_weather.configuration import WLBaseSettings
+
 
 
 class WeatherInfo():
@@ -21,7 +23,27 @@ class WeatherInfo():
     FORECAST_PERIOD_HOURS = 3
 
 
-    def __init__(self,fdata):
+    def toCelsius(self,kelvin:float)->float:
+        return kelvin - self.KTOC
+        
+    def toFahrenheit(self,kelvin:float)->float:
+        return (kelvin - self.KTOC) * 1.8 + 32
+        
+
+    @property
+    def PrintableTemperature(self):
+        return self.temp if self.iscelsius else self.temp_fahrenheit
+
+    @property
+    def IsCelsius(self)->bool:
+        return self.iscelsius
+
+
+
+    def __init__(self,fdata,cfg:WLBaseSettings):
+    
+        self.iscelsius = cfg.IsCelsius 
+    
         self.t =  datetime.datetime.fromtimestamp(int(fdata['dt']))
         self.id = int(fdata['weather'][0]['id'])
 
@@ -45,7 +67,7 @@ class WeatherInfo():
                 self.snow = float(fdata['snow']['3h'])
             elif ('2h' in fdata['snow']):
                 self.snow = float(fdata['snow']['2h']) #todo: limit range
-            elif ('1h' in fdata['show']):
+            elif ('1h' in fdata['snow']):
                 self.snow = float(fdata['snow']['1h']) #todo: limit range
         else:
             self.snow = 0.0
@@ -60,12 +82,16 @@ class WeatherInfo():
         else:
             self.winddeg = 0.0
 
+        self.temp = self.toCelsius( float(fdata['main']['temp']) )
+        self.temp_fahrenheit = self.toFahrenheit( float(fdata['main']['temp']) )
 
-        self.temp = float(fdata['main']['temp']) - WeatherInfo.KTOC
+        self.pressure = float(fdata['main']['pressure'])
 
 
-    def Print(self):
-        print("%s %i %03i%%  %.2f %.2f  %+.2f (%5.1f,%03i)"  % (str(self.t),self.id,self.clouds,self.rain,self.snow,self.temp,self.windspeed,self.winddeg)  )
+     
+    def __str__(self):
+        return "%s %i %03i%%  %.2f %.2f  %+.2f (%5.1f,%03i)"  % (str(self.t),self.id,self.clouds,self.rain,self.snow,self.temp,self.windspeed,self.winddeg)         
+        
 
     @staticmethod
     def Check(fdata):
@@ -80,7 +106,9 @@ class WeatherInfo():
 
 
 
+        
 class OpenWeatherMap():
+        
 
     OWMURL = "http://api.openweathermap.org/data/2.5/"
 
@@ -92,30 +120,32 @@ class OpenWeatherMap():
     FILETOOOLD_SEC = 15*60 # 15 mins
     TOOMUCHTIME_SEC = 4*60*60 # 4 hours 
 
-    def __init__(self,apikey:str,latitude:float,longitude:float,rootdir:str=""):
 
-        self.latitude = latitude
-        self.longitude = longitude
-
-        reqstr = "lat=%.4f&lon=%.4f&mode=json&APPID=%s" % (self.LAT,self.LON,apikey)
+    def __init__(self,cfg:WLBaseSettings):
+        assert cfg!=None
+        assert cfg.OWM_LAT!=None
+        assert cfg.OWM_LON!=None
+        assert cfg.OWM_KEY!=None
+        
+        self.cfg = cfg
+        reqstr = "lat=%.4f&lon=%.4f&mode=json&APPID=%s" % (self.LAT,self.LON,self.cfg.OWM_KEY)
         self.URL_FOREAST = self.OWMURL+"forecast?"+reqstr
         self.URL_CURR =  self.OWMURL+"weather?"+reqstr
         self.f = []
-        self.rootdir = rootdir
         
-        if not os.path.exists(self.rootdir):
-            os.makedirs(self.rootdir)
+        if not os.path.exists(self.cfg.WORK_DIR):
+            os.makedirs(self.cfg.WORK_DIR)
 
-        self.filename_forecast = os.path.join(self.rootdir,self.FILENAME_FORECAST+self.PLACEKEY+self.FILENAME_EXT)
-        self.filename_curr = os.path.join(self.rootdir,self.FILENAME_CURR+self.PLACEKEY+self.FILENAME_EXT)
+        self.filename_forecast = os.path.join(self.cfg.WORK_DIR,self.FILENAME_FORECAST+self.PLACEKEY+self.FILENAME_EXT)
+        self.filename_curr = os.path.join(self.cfg.WORK_DIR,self.FILENAME_CURR+self.PLACEKEY+self.FILENAME_EXT)
 
     @property
     def LAT(self)->float:
-        return self.latitude
+        return self.cfg.OWM_LAT
 
     @property
     def LON(self)->float:
-        return self.longitude
+        return self.cfg.OWM_LON
     
     @staticmethod
     def MakeCoordinateKey(p:float):
@@ -131,16 +161,19 @@ class OpenWeatherMap():
         return  OpenWeatherMap.MakeCoordinateKey(latitude) + OpenWeatherMap.MakeCoordinateKey(longitude)
 
     def FromWWW(self):
+    
         fjsontext = urlopen(self.URL_FOREAST).read()
-        ff = open(self.filename_forecast,"wb")
-        ff.write(fjsontext)
-        ff.close()
         fdata = json.loads(fjsontext)
+        ff = open(self.filename_forecast,"wb")
+        ff.write( json.dumps(fdata, indent=4).encode('utf-8',errors='ignore') )
+        ff.close()
+        
         cjsontext = urlopen(self.URL_CURR).read()
-        cf = open(self.filename_curr,"wb")
-        cf.write(cjsontext)
-        cf.close()
         cdata = json.loads(cjsontext)
+        cf = open(self.filename_curr,"wb")
+        cf.write( json.dumps(cdata, indent=4).encode('utf-8',errors='ignore') )
+        cf.close()
+        
         return self.FromJSON(cdata,fdata)
 
 
@@ -169,14 +202,14 @@ class OpenWeatherMap():
     def FromJSON(self,data_curr,data_fcst):
         self.f = []
         cdata = data_curr
-        f = WeatherInfo(cdata)
+        f = WeatherInfo(cdata,self.cfg)
         self.f.append(f)
         if not ('list' in data_fcst):
             return False
         for fdata in data_fcst['list']:
             if not WeatherInfo.Check(fdata):
                 continue
-            f = WeatherInfo(fdata)
+            f = WeatherInfo(fdata,self.cfg)
             self.f.append(f)
         return True
 
@@ -222,7 +255,11 @@ class OpenWeatherMap():
             f.Print()
 
        
-
+    def ToString(self):
+        s = ""
+        for f in self.f:
+            s+= str(f) + "\n"
+        return s
 
 
 

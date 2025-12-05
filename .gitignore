@@ -1,9 +1,11 @@
+holiday_*.json
 tmp
 art
 .venv
 
 # secrets
 secrets.py
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

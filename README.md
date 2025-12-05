@@ -58,8 +58,14 @@ The image generation code is written in [Python](https://www.python.org/) using 
 |![example](pic/sprites_north.png)| North wind |
 |![example](pic/rain.png)| Rain|
 |![example](pic/snow.png)| Snow|
+|![example](pic/pres_high.png)| High atmospheric pressure |
+|![example](pic/pres_norm.png)| Normal atmospheric pressure |
+|![example](pic/pres_low.png)| Low atmospheric pressure |
+|![example](pic/holiday.png)| [Non-weather event](holiday.md): someone's birthday. |
 
 The taller the trees, the stronger the wind is expected to be. A mix of different tree types in the forest indicates an intermediate wind direction.
+
+
 
 ## Examples
 
@@ -67,7 +73,7 @@ The taller the trees, the stronger the wind is expected to be. A mix of differen
 |----------|------------|
 |![example](pic/weather_test.bmp)| It’s around noon, with clear skies and a few clouds expected. A moderate north wind will develop overnight. Temperatures are currently rising but will begin to fall after sunset, reaching their lowest point before sunrise. During this time, the wind is expected to shift to the northeast.|
 |![example](pic/test_20240903_043826.bmp)| The sun is rising and it will be a hot sunny day with a light southeast breeze. The temperature will remain high even after sunset, and the wind will shift to the east, becoming stronger throughout the evening.|
-|![example](pic/test_09B0B1083315.bmp)| It will be cold and rainy throughout the day and night. The south wind will shift to the northeast overnight.|
+|![example](pic/test_09B0B1083315.bmp)| It will be cold and rainy throughout the day and night. The south wind will shift to the northwest overnight. Don’t forget that someone’s birthday is tomorrow. |
 
 
 ## How the landscape changed during the day
@@ -105,11 +111,17 @@ Update **OWM_KEY** variable in the `secrets.py` with your OpenWeather API key.
 python run_test.py
 ```
 
+Find generated images in the "tmp" folder.
+
 #### Run server
 
 ```
 python run_server.py
 ```
+
+![Setup](pic/server_start_screenshot.png)
+
+Access the server page from a browser to see the number of generated images.
 
 #### Docker
 
@@ -133,7 +145,8 @@ docker run -d \
 Or use docker-compose.yml.example
 
 
-## Hardware
+
+## E-Ink module
 
 <!-- ![2.9inch e-Paper Module](pic/eink.jpg) -->
 ![Setup](pic/hardware.jpg)
@@ -141,3 +154,14 @@ Or use docker-compose.yml.example
 The hardware setup includes an [ESP32 development board](https://www.adafruit.com/product/3269) and [2.9inch E-Ink display module](https://www.waveshare.com/2.9inch-e-paper-module.htm). Currently, the setup only displays an image sourced from the internet, updating every 15 minutes. It is uncertain whether the image generation code can be adapted for use with MicroPython on the ESP32 at this time.
 
 [More information](esp32/README.md)
+
+
+## Phone
+
+![Setup](pic/landscape_rgb_w.png)
+
+During the test, several images are generated. The black-and-white images are intended for use with an E-Ink module, while the color images can be placed on a phone's home screen. For Android devices, there is an app called [Web Image Widget](https://play.google.com/store/apps/details?id=com.ibuffed.webimagewidget&hl=en) that allows you to create a widget displaying an image from the internet. To use it, start the server script from the repository and add a widget that points to one of the generated images.
+
+![Android](pic/color_phone_screenshot.jpg)
+
+
